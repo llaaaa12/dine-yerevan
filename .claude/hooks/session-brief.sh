@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SessionStart: a short briefing for Claude (what this prints becomes context):
-# branch → roadmap step and its open tasks, uncommitted files, whether the Docker database runs.
+# branch → roadmap step with open tasks per group and what comes next, uncommitted files, database.
 set -uo pipefail
 
 root="${CLAUDE_PROJECT_DIR:-$(pwd)}"
@@ -18,14 +18,25 @@ if [[ -n $branch && -f docs/tasks.md ]]; then
         sub(/^#+ /, "", title); sub(/ +·.*$/, "", title)
         next
       }
+      if (inside) { group = $0; sub(/^#+ /, "", group) }
+      next
     }
     inside && /^- \[ \] \*\*/ {
-      open++
-      if (n < 6) { id = $0; sub(/^- \[ \] \*\*/, "", id); sub(/\*\*.*/, "", id); ids = ids (n ? ", " : "") id; n++ }
+      g = (group == "" ? "-" : group)
+      if (!(g in open)) order[++ng] = g
+      open[g]++; total++
+      if (nextgroup == "") nextgroup = g
+      if (g == nextgroup && n < 5) {
+        id = $0; sub(/^- \[ \] \*\*/, "", id); sub(/\*\*.*/, "", id)
+        ids = ids (n ? ", " : "") id; n++
+      }
     }
     inside && /^- \[x\] / { done++ }
     END {
-      if (inside) printf "%s: %d open task(s)%s, %d done", title, open, (open ? " (" ids (open > n ? ", …" : "") ")" : ""), done
+      if (!inside) exit
+      printf "%s: %d open, %d done", title, total, done
+      for (i = 1; i <= ng; i++) if (order[i] != "-") printf "\n  - %s: %d open", order[i], open[order[i]]
+      if (nextgroup != "") printf "\n  - Next%s: %s%s", (nextgroup == "-" ? "" : " (" nextgroup ")"), ids, (open[nextgroup] > n ? ", …" : "")
     }
   ' docs/tasks.md)
 fi
@@ -42,4 +53,5 @@ if db=$(timeout 5 docker compose ps --format '{{.Service}} {{.State}} {{.Health}
 else
   echo "- Docker database: NOT running (the user starts it with: docker compose up -d)"
 fi
+echo "- Work order inside a step: frontend design → frontend API (+ fake answers) → database → backend → shared."
 echo "- Before the first change, read the rule files that apply (CLAUDE.md → Rules and skills)."

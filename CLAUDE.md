@@ -24,6 +24,15 @@ Before starting a task, read the rule files that apply, and follow them for the 
 
 Rules always apply. A skill applies when the task matches it; then follow its steps. If a request conflicts with a rule, say so and ask before breaking the rule.
 
+**Order inside a step.** `docs/tasks.md` groups every step's tasks in this order:
+1. frontend design
+2. frontend API with fake answers (this is the API contract)
+3. database
+4. backend
+5. shared
+
+Parts 1–2 are frontend tasks. Parts 3–4 are backend tasks. Part 5 touches both apps. Details are in `.claude/skills/workflow.md`.
+
 ### Skills: type `/name`, or just ask in words
 
 | Whole project | Backend | Frontend |
@@ -42,6 +51,7 @@ Claude Code only finds skills inside `.claude/skills/`. So each backend and fron
 | | `backend/` | `frontend/` |
 | --- | --- | --- |
 | Run | `npm run dev` → http://localhost:3000 | `npm run dev` → http://localhost:5173 |
+| Run without the backend | | `npm run dev:mock`: same app, API answered by the fake MSW handlers |
 | Checks (same as CI) | `npm run lint` · `npm run typecheck` · `npm test` | `npm run lint` · `npm run typecheck` · `npm test` · `npm run build` |
 | Database | `npm run migration:run` · `npm run seed` (from Step 3) | |
 

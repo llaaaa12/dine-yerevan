@@ -51,6 +51,14 @@ Above all: **how availability is calculated and how double booking is prevented*
 
 - **Work style:** Claude writes the code for each step and explains how it works. You run it, test it, review it and commit it.
 - **Git:** one branch per step (the name is listed in each step) → pull request on GitHub → GitHub Actions runs lint, typecheck, tests and build → you merge. You run every git command yourself; Claude gives you the exact commands.
+- **Order inside a step (frontend first):**
+  1. Frontend design (pages and forms with sample data).
+  2. Frontend API: API functions, hooks and realistic fake answers. Together they are the API contract, and you can see them in the browser with `npm run dev:mock`.
+  3. Database: entities and migrations.
+  4. Backend, built to match the contract.
+  5. Shared: README, accounts, and a run against the real backend.
+
+  `docs/tasks.md` groups every step's tasks this way. Steps without screens start at the database or the backend. One commit per part: frontend, backend, shared.
 - **Checklists:** each step ends with “Done when” boxes. Tick them before merging.
 - **Language:** the website is English only.
 - **API documentation:** an endpoint table in the README, updated in every step.
@@ -93,6 +101,7 @@ Everything below was chosen by you during planning. The steps in Section 4 follo
 | Domain | Decide later (only a settings change) |
 | Final features order | Emails → Reviews → Maps → Favorites → Google Places import + claims → Admin → Owner stats → (stretch) availability search |
 | Backend structure | Layered folders: routes → controllers → services → repositories → entities (plus validators, middlewares, integrations, utils) |
+| Work order in a step | Frontend first: design → frontend API with fake answers (the contract) → database → backend → shared; mock mode `npm run dev:mock` shows the frontend without a backend |
 
 ## 4. Roadmap, step by step
 

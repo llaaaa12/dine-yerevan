@@ -19,8 +19,9 @@ Page: $ARGUMENTS
    - **Styling:** theme colors only (no hex), shadcn components, even spacing, light theme only.
    - **Words:** English, short, the same domain words everywhere.
 3. **In the browser**, when a browser tool is connected and the user agrees:
-   - With both dev servers running, open the page at 375 px and at 1280 px wide, and take screenshots.
-   - Check the empty and error states too. For example, stop the backend to see the error state.
+   - Run `npm run dev:mock` (no backend needed), or both dev servers.
+   - Open the page at 375 px and at 1280 px wide, and take screenshots.
+   - Check the empty and error states too, e.g. by stopping the backend, or by a temporary MSW handler that returns an empty list or a 500.
 4. **Report** a short list of problems, each with where it is (`path:line`) and the fix.
    - Fix them if the user agrees.
    - Then run `npm run lint && npm run typecheck && npm test` in `frontend/`.

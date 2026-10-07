@@ -17,7 +17,7 @@ if (!env.isTest) {
 app.use(helmet());
 app.use(cors({ origin: env.corsOrigins }));
 app.use(express.json());
-// Fills req.cookies; the auth cookies (Step 2) are read from there
+
 app.use(cookieParser());
 
 app.use('/api', router);

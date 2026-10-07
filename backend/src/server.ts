@@ -13,7 +13,6 @@ try {
 }
 
 const server = app.listen(env.port, (err) => {
-  // Express 5 passes startup errors (e.g. port already in use) to this callback
   if (err) {
     console.error(`Failed to start server: ${err.message}`);
     process.exit(1);

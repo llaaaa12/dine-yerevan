@@ -45,7 +45,7 @@ The backend reads these values from `backend/.env` as `DB_HOST`, `DB_PORT`, `DB_
 
 ### Entities and migrations (run in `backend/`)
 
-1. Add an entity next to its feature as `src/modules/<feature>/<name>.entity.ts`. Every `*.entity.ts` under `src/modules` is loaded automatically.
+1. Add an entity as `src/entities/<name>.entity.ts`, e.g. `restaurant.entity.ts`. Every `*.entity.ts` in that folder is loaded automatically.
 2. Generate a migration from your entity changes, then review the SQL it wrote:
    `npm run migration:generate -- src/db/migrations/CreateRestaurants`
 3. Apply it with `npm run migration:run`. `migration:revert` undoes the last one, `migration:show` lists them all.
@@ -78,24 +78,60 @@ All routes are under `/api`. Errors always look like `{ "error": { "message": "�
 | `npm run db:test:create`            | Create the test database once (only for a volume that predates it)      |
 | `npm run migration:<command>`       | `generate`, `create`, `run`, `revert`, `show` (see Database)            |
 
+### Layered architecture
+
+The backend is organized by layer. A request travels down the layers and the response comes back up:
+
+```
+route → controller → service → repository → database
+```
+
 ```
 backend/
 ├── src/
 │   ├── server.ts          # entry point: connects the database, starts HTTP, graceful shutdown
 │   ├── app.ts             # Express app: middleware → /api routes → 404 → error handler
-│   ├── routes.ts          # mounts every module's router under /api
 │   ├── config/env.ts      # the only place that reads process.env
 │   ├── db/
 │   │   ├── data-source.ts # TypeORM config, shared by the app and the CLI
 │   │   └── migrations/    # generated migrations
-│   ├── middlewares/       # 404, error handler, validate (Zod)
-│   ├── modules/           # one folder per feature: routes, controller, service, entities
-│   │   └── health/
-│   └── utils/             # HttpError
+│   ├── routes/            # 1. URL + method → middlewares → controller; index.ts mounts all under /api
+│   ├── controllers/       # 2. read the request, call a service, send the response
+│   ├── services/          # 3. business rules (availability, booking, auth…); no req/res, no SQL
+│   ├── repositories/      # 4. every database query; the only layer that touches the database
+│   ├── entities/          #    TypeORM classes, one per table (from Step 2)
+│   ├── validators/        #    Zod rules for request data, used in routes (from Step 2)
+│   ├── integrations/      #    clients for outside APIs: Google, Cloudinary, Resend (from Step 2)
+│   ├── middlewares/       # 404, error handler, validate (Zod); auth checks from Step 2
+│   └── utils/             # small shared helpers (HttpError)
 └── tests/                 # API tests; helpers/db.ts sets up and empties the test database
 ```
 
-To add a feature, create `src/modules/<feature>/` with `<feature>.routes.ts`, `<feature>.controller.ts`, `<feature>.service.ts` and its entities, then mount the router in `src/routes.ts`. Express 5 sends thrown errors and rejected promises to the error handler, so handlers need no try/catch.
+Files are named `<feature>.<layer>.ts`. The health check is the smallest example: `routes/health.routes.ts` → `controllers/health.controller.ts` → `services/health.service.ts` → `repositories/health.repository.ts`.
+
+**Rules between layers:**
+
+- A layer only calls the layer directly below it. Controllers never query the database, services never see `req`/`res`, and repositories contain no business rules.
+- Services reach outside APIs through `integrations/`, the same way they reach the database through `repositories/`.
+- Repository functions take an optional TypeORM `manager`, so a service can run several of them in one transaction. The double-booking protection relies on this:
+
+  ```ts
+  await dataSource.transaction(async (manager) => {
+    await lockTable(manager, tableId);
+    await insertReservation(manager, reservation);
+  });
+  ```
+
+**To add a feature** (e.g. restaurants):
+
+1. `entities/restaurant.entity.ts` and a migration (see Database).
+2. `repositories/restaurant.repository.ts`: the queries.
+3. `services/restaurant.service.ts`: the business rules, using the repository.
+4. `validators/restaurant.validators.ts`: Zod schemas for the request data.
+5. `controllers/restaurant.controller.ts`: reads `res.locals`, calls the service and sends the JSON.
+6. `routes/restaurant.routes.ts`: the URLs with `validate(...)` and the controller. Then mount it in `routes/index.ts`.
+
+Express 5 sends thrown errors and rejected promises to the error handler, so no layer needs try/catch just to forward errors.
 
 - **Validate input** with `validate({ body, query, params })` from `src/middlewares/validate.ts`, passing Zod schemas. Handlers read the parsed values from `res.locals.body`, `res.locals.query` and `res.locals.params` (Express 5 makes `req.query` read-only). Invalid input gets a 400 with `details: { location, fieldErrors, formErrors }`.
 - **Expected errors:** `throw new HttpError(status, message, { code, details })`. `code` is a stable name the frontend can react to, e.g. `TABLE_TAKEN`.

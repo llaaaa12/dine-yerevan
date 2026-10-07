@@ -7,9 +7,8 @@ import morgan from 'morgan';
 import { env } from './config/env.js';
 import { errorHandler } from './middlewares/error-handler.js';
 import { notFound } from './middlewares/not-found.js';
-import { router } from './routes.js';
+import { router } from './routes/index.js';
 
-// The app is built here without listening, so tests can import it directly.
 export const app = express();
 
 if (!env.isTest) {

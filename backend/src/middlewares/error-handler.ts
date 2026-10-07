@@ -1,9 +1,12 @@
+import type { ErrorRequestHandler } from 'express';
+
 import { env } from '../config/env.js';
 
 // Express recognizes error handlers by their 4 parameters, so keep all of them.
-export function errorHandler(err, req, res, next) {
+export const errorHandler: ErrorRequestHandler = (err, req, res, next) => {
   if (res.headersSent) {
-    return next(err);
+    next(err);
+    return;
   }
 
   const status =
@@ -24,4 +27,4 @@ export function errorHandler(err, req, res, next) {
       ...(isServerError && !env.isProduction && { stack: err.stack }),
     },
   });
-}
+};

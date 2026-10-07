@@ -1,24 +1,30 @@
-import { useEffect, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+
+import { cn } from '@/lib/utils';
 
 import { getHealth } from './health.api.ts';
 
 // Shows whether the browser can reach the backend (through the Vite proxy) and its database.
 export function ApiStatus() {
-  const [status, setStatus] = useState('checking…');
+  const { data, isPending, isError } = useQuery({
+    queryKey: ['health'],
+    queryFn: getHealth,
+  });
 
-  useEffect(() => {
-    let ignore = false;
-    getHealth()
-      .then((health) => {
-        if (!ignore) setStatus(`${health.status}, database ${health.database}`);
-      })
-      .catch(() => {
-        if (!ignore) setStatus('unreachable (is the backend running?)');
-      });
-    return () => {
-      ignore = true;
-    };
-  }, []);
+  let text = 'checking…';
+  let dotColor = 'bg-muted-foreground';
+  if (isError) {
+    text = 'unreachable (is the backend running?)';
+    dotColor = 'bg-destructive';
+  } else if (!isPending) {
+    text = `${data.status}, database ${data.database}`;
+    dotColor = data.database === 'up' ? 'bg-emerald-500' : 'bg-amber-500';
+  }
 
-  return <p>API status: {status}</p>;
+  return (
+    <p className="inline-flex items-center gap-2 rounded-full border bg-card px-3 py-1 text-sm text-muted-foreground">
+      <span className={cn('size-2 rounded-full', dotColor)} aria-hidden />
+      API status: {text}
+    </p>
+  );
 }

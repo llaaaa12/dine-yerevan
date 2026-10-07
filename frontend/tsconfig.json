@@ -3,5 +3,9 @@
   "references": [
     { "path": "./tsconfig.app.json" },
     { "path": "./tsconfig.node.json" }
-  ]
+  ],
+  // Read by the shadcn CLI to find the import alias; the real settings live in tsconfig.app.json
+  "compilerOptions": {
+    "paths": { "@/*": ["./src/*"] }
+  }
 }

@@ -17,6 +17,8 @@ services:
     volumes:
       # Postgres 18+ images keep data under /var/lib/postgresql (not .../data)
       - db-data:/var/lib/postgresql
+      # SQL scripts here run once, when the data volume is first created (adds the test database)
+      - ./docker/initdb:/docker-entrypoint-initdb.d:ro
     healthcheck:
       test: ['CMD-SHELL', 'pg_isready -U dine -d dine_yerevan']
       interval: 5s

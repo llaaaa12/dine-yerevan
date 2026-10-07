@@ -163,18 +163,21 @@ frontend/src/
 │   └── health/
 ├── lib/
 │   ├── api-client.ts     # fetch wrapper for the backend API (throws ApiError with status/code)
-│   ├── query-client.ts   # TanStack Query cache settings
+│   ├── query-client.ts   # TanStack Query cache settings (retries only network/5xx errors)
 │   └── utils.ts          # cn(): merges Tailwind class names
-└── test/
+└── test/                 # every frontend test lives here
+    ├── *.test.ts(x)      # the tests, e.g. routes.test.tsx, api-client.test.ts
     ├── setup.ts          # Vitest + Testing Library + MSW setup
-    ├── render.tsx        # renderRoute(path): renders a page with the app's providers
+    ├── render.tsx        # renderRoute(path) / renderWithProviders(ui)
     └── msw/              # fake API responses for tests (handlers.ts)
 ```
 
 - **Pages:** to add a page, create it in `src/pages/` and add it to `src/routes.tsx`. Put a feature's API calls (via `api` from `lib/api-client.ts`) and components in `src/features/<feature>/`.
 - **Styling:** use Tailwind classes. Colors come from the CSS variables in `index.css` (`bg-primary`, `text-muted-foreground`, …). Imports from `src/` can use the `@/` alias, e.g. `@/components/ui/button`.
 - **Server data:** load it with TanStack Query's `useQuery` and change it with `useMutation`, both wrapping functions from the feature's `*.api.ts`.
-- **Tests:** MSW answers API calls in tests with the handlers in `src/test/msw/handlers.ts`. A single test can override one with `server.use(...)`.
+- **Tests:** all test files live in `src/test/` as `<name>.test.ts(x)`. Vitest only runs `src/test/**/*.test.{ts,tsx}`, so a test placed anywhere else won't run. When there are many, group them in subfolders that mirror `src/`, e.g. `src/test/features/booking/`.
+  - Render a whole page with `renderRoute('/path')`, or a single component with `renderWithProviders(<Component />)`.
+  - MSW answers API calls with the handlers in `src/test/msw/handlers.ts`. A single test can override one with `server.use(...)`.
 
 ## CI
 

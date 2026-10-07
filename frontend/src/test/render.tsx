@@ -1,21 +1,26 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render } from '@testing-library/react';
+import type { ReactNode } from 'react';
 import { createMemoryRouter } from 'react-router';
 import { RouterProvider } from 'react-router/dom';
 
 import { routes } from '../routes.tsx';
 
-// Renders the app at `path` with the same providers as App.tsx, but an in-memory router
-// and a fresh cache per test (no retries, so error states show immediately).
-export function renderRoute(path: string) {
+// Same providers as App.tsx, with a fresh cache per test and no retries,
+// so error states show immediately.
+export function renderWithProviders(ui: ReactNode) {
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false } },
   });
-  const router = createMemoryRouter(routes, { initialEntries: [path] });
 
   return render(
-    <QueryClientProvider client={queryClient}>
-      <RouterProvider router={router} />
-    </QueryClientProvider>,
+    <QueryClientProvider client={queryClient}>{ui}</QueryClientProvider>,
   );
+}
+
+// Renders the whole app at `path`, using an in-memory router
+export function renderRoute(path: string) {
+  const router = createMemoryRouter(routes, { initialEntries: [path] });
+
+  return renderWithProviders(<RouterProvider router={router} />);
 }

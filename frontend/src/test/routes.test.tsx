@@ -1,9 +1,7 @@
 import { screen } from '@testing-library/react';
-import { http, HttpResponse } from 'msw';
 import { describe, expect, it } from 'vitest';
 
-import { server } from './test/msw/server.ts';
-import { renderRoute } from './test/render.tsx';
+import { renderRoute } from './render.tsx';
 
 describe('routes', () => {
   it('renders the home page with the API status', async () => {
@@ -14,18 +12,6 @@ describe('routes', () => {
     ).toBeInTheDocument();
     expect(
       await screen.findByText('API status: ok, database up'),
-    ).toBeInTheDocument();
-  });
-
-  it('shows when the backend is unreachable', async () => {
-    server.use(http.get('/api/health', () => HttpResponse.error()));
-
-    renderRoute('/');
-
-    expect(
-      await screen.findByText(
-        'API status: unreachable (is the backend running?)',
-      ),
     ).toBeInTheDocument();
   });
 

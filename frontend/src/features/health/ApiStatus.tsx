@@ -22,7 +22,10 @@ export function ApiStatus() {
   }
 
   return (
-    <p className="inline-flex items-center gap-2 rounded-full border bg-card px-3 py-1 text-sm text-muted-foreground">
+    <p
+      role="status"
+      className="inline-flex items-center gap-2 rounded-full border bg-card px-3 py-1 text-sm text-muted-foreground"
+    >
       <span className={cn('size-2 rounded-full', dotColor)} aria-hidden />
       API status: {text}
     </p>

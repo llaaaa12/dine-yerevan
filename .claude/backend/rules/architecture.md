@@ -39,7 +39,7 @@ A request goes down the layers, and the answer comes back up:
 - Services return DTOs: plain objects shaped for the API. Never return entities with `passwordHash`, token hashes or another user's private data.
 
 ## Adding a feature
-Work in this order:
+Start from the contract that the frontend part of the step wrote: the `<feature>.api.ts` types and the MSW handlers (see `api-contract.md`). Then work in this order:
 1. entity + migration
 2. repository
 3. `*.rules.ts` (if there is pure logic)

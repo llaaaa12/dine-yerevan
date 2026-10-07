@@ -8,7 +8,9 @@ argument-hint: "[form, e.g. 'login form' or 'restaurant settings']"
 
 Form: $ARGUMENTS. Follow `.claude/frontend/rules/forms.md` and `ui.md`.
 
-1. **Fields and limits.** Show the user each field: its type, whether it's required, and its limits. Match the backend validator (`backend/src/validators/…`) so both sides agree.
+1. **Fields and limits.** Show the user each field: its type, whether it's required, and its limits.
+   - If the backend validator already exists (`backend/src/validators/…`), match it.
+   - If it doesn't (frontend first), these limits become the contract, and the backend validator will copy them.
 2. **Schema**, in the feature folder:
    ```ts
    export const <name>Schema = z.object({ … });
@@ -17,7 +19,10 @@ Form: $ARGUMENTS. Follow `.claude/frontend/rules/forms.md` and `ui.md`.
 3. **Form:** `useForm<<Name>Values>({ resolver: zodResolver(<name>Schema), defaultValues })`.
    - Build each field with a `Controller` wrapped around `Field`, `FieldLabel`, the input and `FieldError` (from `@/components/ui/field`).
    - Set `aria-invalid` on invalid inputs.
-4. **Submit:** `const mutation = useMutation({ mutationFn, onSuccess })` and `form.handleSubmit((values) => mutation.mutate(values))`. While pending, the button is disabled and says "Saving…".
+4. **Submit:**
+   - `const mutation = useMutation({ mutationFn, onSuccess })` and `form.handleSubmit((values) => mutation.mutate(values))`.
+   - While pending, the button is disabled and says "Saving…".
+   - Until the backend exists, MSW handlers in `src/test/msw/handlers.ts` answer the request, in the tests and in `npm run dev:mock`. Add a realistic success answer; the tests cover the 400 with `fieldErrors` using `server.use`.
 5. **Server errors:**
    - On an `ApiError` 400, call `form.setError(field, { message })` for each entry of `details.fieldErrors`, and show `formErrors` above the form.
    - Known codes (`TABLE_TAKEN`, `CUSTOMER_OVERLAP`, 409 duplicates) get friendly sentences.

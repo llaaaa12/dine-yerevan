@@ -40,5 +40,13 @@ Applies to every task that adds, changes or calls an endpoint.
 - The frontend never reads or stores tokens.
 - On a 401, the frontend calls `POST /api/auth/refresh` once, then retries the original request once.
 
+## Where the contract lives
+- **It is written first**, in the frontend part of a step:
+  - the types and functions in `frontend/src/features/<feature>/<feature>.api.ts`;
+  - the fake answers in `frontend/src/test/msw/handlers.ts`. The tests and mock mode (`npm run dev:mock`) both use them.
+- **The backend implements exactly that JSON:** the same fields, types, status codes and error codes.
+- **If something has to change**, update the types and the fake answers first, in the same commit as the backend change.
+- **Steps without screens** have no frontend part. There, the backend design (shown to the user before building) is the contract.
+
 ## Documentation
-Every new or changed endpoint gets a row in the README "API endpoints" table in the same pull request: `| Method | Path | Who | What it does |`.
+Every new or changed endpoint gets a row in the README "API endpoints" table in the same pull request, once the real endpoint exists: `| Method | Path | Who | What it does |`.

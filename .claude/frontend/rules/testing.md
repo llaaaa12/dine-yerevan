@@ -11,7 +11,7 @@ Applies to every frontend task that changes behavior.
   - One component: `renderWithProviders(<X />)`.
   - Both come from `src/test/render.tsx` and use a fresh query cache with no retries.
 - **API answers come from MSW:**
-  - The defaults are in `src/test/msw/handlers.ts`.
+  - The defaults are in `src/test/msw/handlers.ts`. They are the API contract, and mock mode shows them in the browser, so keep them realistic: the real field names and types, and plausible Yerevan data.
   - To change one inside a single test: `server.use(http.get('/api/…', () => HttpResponse.json(…)))`.
   - A request without a handler fails the test (`onUnhandledRequest: 'error'`).
 - **Queries:** find things the way a user does: `getByRole`, `getByLabelText`, `getByText`. Use `findBy…` for anything that appears after loading. No test ids unless there is no accessible way.

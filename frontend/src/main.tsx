@@ -5,8 +5,18 @@ import { createRoot } from 'react-dom/client';
 import './index.css';
 import { App } from './App.tsx';
 
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <App />
-  </StrictMode>,
-);
+// Only `vite --mode mock` keeps this branch; production builds drop it and MSW with it
+async function startMockApi() {
+  if (import.meta.env.MODE === 'mock') {
+    const { worker } = await import('./test/msw/browser.ts');
+    await worker.start({ onUnhandledRequest: 'bypass' });
+  }
+}
+
+startMockApi().then(() => {
+  createRoot(document.getElementById('root')!).render(
+    <StrictMode>
+      <App />
+    </StrictMode>,
+  );
+});

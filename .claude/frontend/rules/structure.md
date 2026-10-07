@@ -32,6 +32,12 @@ Applies to every task in `frontend/`.
 - **Errors** arrive as `ApiError` (`status`, `code`, `details`). React to `code`, never to the message text. Example: `TABLE_TAKEN` → toast + reload the free tables.
 - **Retries:** `shouldRetry` already retries network and 5xx errors once. Don't override it for a single query without a reason.
 
+## Sample data and mock mode (frontend first)
+- **Design part:** components may show sample data written right in the component, with realistic Yerevan examples. In the API part, replace it with the hooks. No sample data stays in components after that.
+- **Mock mode:** `npm run dev:mock` (`vite --mode mock`) runs the app in the browser with the MSW handlers from `src/test/msw/handlers.ts`.
+  - `main.tsx` starts the MSW worker only in this mode, so production builds don't contain it.
+  - Requests without a handler go on to the real backend.
+
 ## Routing and state
 - **Filters, search and pagination** live in the URL (`useSearchParams`), so links and the back button work.
 - **Protected areas** use a `RequireRole` layout route (from Step 2). It shows loading, then redirects to `/login` with `from`, or shows the 403 page.

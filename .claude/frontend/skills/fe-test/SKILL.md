@@ -30,7 +30,7 @@ Target: $ARGUMENTS. Follow `.claude/frontend/rules/testing.md`.
    });
    ```
 3. **API data:**
-   - Put calls that many tests need into the default handlers in `src/test/msw/handlers.ts`.
+   - Put calls that many tests need into the default handlers in `src/test/msw/handlers.ts`. Mock mode (`npm run dev:mock`) uses them too, so keep them realistic: they are the API contract.
    - Override one inside a single test with `server.use(...)`.
    - To check what was sent, read `await request.json()` inside the handler.
 4. **Queries and interactions:**

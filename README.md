@@ -143,6 +143,7 @@ TypeORM's decorators need TypeScript's decorator metadata, which Node's built-in
 | Command                             | What it does                                             |
 | ----------------------------------- | -------------------------------------------------------- |
 | `npm run dev`                       | Dev server on http://localhost:5173                      |
+| `npm run dev:mock`                  | Same, but the API is answered by the MSW fake handlers   |
 | `npm run build` / `npm run preview` | Type-check and build into `dist/` / serve the built app  |
 | `npm test`                          | Component tests (Vitest + Testing Library; `test:watch`) |
 | `npm run typecheck`                 | Type-check with `tsc`                                    |
@@ -169,7 +170,7 @@ frontend/src/
     ├── *.test.ts(x)      # the tests, e.g. routes.test.tsx, api-client.test.ts
     ├── setup.ts          # Vitest + Testing Library + MSW setup
     ├── render.tsx        # renderRoute(path) / renderWithProviders(ui)
-    └── msw/              # fake API responses for tests (handlers.ts)
+    └── msw/              # fake API answers for tests and mock mode (handlers.ts, browser.ts)
 ```
 
 - **Pages:** to add a page, create it in `src/pages/` and add it to `src/routes.tsx`. Put a feature's API calls (via `api` from `lib/api-client.ts`) and components in `src/features/<feature>/`.
@@ -178,6 +179,9 @@ frontend/src/
 - **Tests:** all test files live in `src/test/` as `<name>.test.ts(x)`. Vitest only runs `src/test/**/*.test.{ts,tsx}`, so a test placed anywhere else won't run. When there are many, group them in subfolders that mirror `src/`, e.g. `src/test/features/booking/`.
   - Render a whole page with `renderRoute('/path')`, or a single component with `renderWithProviders(<Component />)`.
   - MSW answers API calls with the handlers in `src/test/msw/handlers.ts`. A single test can override one with `server.use(...)`.
+- **Mock mode:** `npm run dev:mock` runs the app in the browser with those same handlers, so pages work before their backend exists.
+  - The MSW service worker (`public/mockServiceWorker.js`, made by `npx msw init ./public`) starts only in this mode, so production builds don't include MSW.
+  - Requests without a handler go to the real backend.
 
 ## CI
 

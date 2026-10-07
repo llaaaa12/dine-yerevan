@@ -10,12 +10,12 @@ Feature: $ARGUMENTS
 
 Follow `.claude/backend/rules/` (architecture, database, testing) and the shared rules `domain.md`, `api-contract.md` and `security.md`. If the feature is in `docs/tasks.md`, use its task IDs, file names and endpoints.
 
-1. **Design first.** Show the user the design, then build it.
-   - The endpoints: method, path, who may call it, status codes, error codes.
-   - The request and response JSON.
-   - The entity fields and their constraints.
-   - Ask about anything the roadmap leaves open.
-2. **Entity:** `src/entities/<entity>.entity.ts`, then its **migration** (follow `/be-migration`).
+1. **Start from the contract.** In the frontend-first order, the frontend part already defined it.
+   - Read `frontend/src/features/<feature>/<feature>.api.ts` (request and response types) and the matching handlers in `frontend/src/test/msw/handlers.ts` (fake answers, status codes, error codes).
+   - The backend must send exactly that JSON. If something has to differ, change the contract first, and tell the user why.
+   - Steps without screens have no frontend contract. There, design the endpoints (method, path, who may call them, status codes, error codes, JSON) and show them to the user first.
+   - Then show the entity fields and constraints the contract needs. Ask about anything the roadmap leaves open.
+2. **Database first:** `src/entities/<entity>.entity.ts`, then its **migration** (follow `/be-migration`). In `docs/tasks.md` these are group 3; the rest of this recipe is group 4.
 3. **Repository:** `src/repositories/<entity>.repository.ts`.
    - One function per query, with `manager: EntityManager = dataSource.manager` as the last parameter.
    - Returns entities or raw rows.
@@ -39,6 +39,7 @@ Follow `.claude/backend/rules/` (architecture, database, testing) and the shared
     - Demo data in `src/cli/seed.ts` if the demo needs it.
 11. **Check:**
     - In `backend/`, run `npm run lint && npm run typecheck && npm test`.
-    - Then tell the user how to try it (a `curl` command or the frontend page).
+    - Compare a real response with the MSW fake answer: the same fields and types.
+    - Then tell the user how to try it: a `curl` command, or the frontend page with `npm run dev` (not mock mode).
 
 Pattern to copy: the health feature is the smallest complete example, `routes/health.routes.ts` → `controllers/health.controller.ts` → `services/health.service.ts` → `repositories/health.repository.ts`.

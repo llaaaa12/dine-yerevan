@@ -12,6 +12,7 @@ export const dataSource = new DataSource({
   username: env.db.user,
   password: env.db.password,
   database: env.db.name,
+  ssl: env.db.ssl,
   // Any src/modules/<feature>/<name>.entity.ts is picked up automatically
   entities: [
     join(import.meta.dirname, '..', 'modules', '**', '*.entity.{ts,js}'),

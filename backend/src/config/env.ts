@@ -9,11 +9,24 @@ function readPort(name: string, fallback: number): number {
   return value;
 }
 
+function readBoolean(name: string, fallback: boolean): boolean {
+  const value = process.env[name];
+  if (value === undefined || value === '') {
+    return fallback;
+  }
+  if (value !== 'true' && value !== 'false') {
+    throw new Error(`Invalid ${name}: "${value}" (use true or false)`);
+  }
+  return value === 'true';
+}
+
 export const env = Object.freeze({
   nodeEnv,
   isProduction: nodeEnv === 'production',
   isTest: nodeEnv === 'test',
   port: readPort('PORT', 3000),
+  // Public address of the frontend: OAuth redirects and links in emails point here
+  appUrl: process.env.APP_URL ?? 'http://localhost:5173',
   corsOrigins: (process.env.CORS_ORIGIN ?? 'http://localhost:5173')
     .split(',')
     .map((origin) => origin.trim()),
@@ -24,5 +37,7 @@ export const env = Object.freeze({
     user: process.env.DB_USER ?? 'dine',
     password: process.env.DB_PASSWORD ?? 'dine',
     name: process.env.DB_NAME ?? 'dine_yerevan',
+    // Hosted databases such as Neon require TLS; the local Docker one doesn't use it
+    ssl: readBoolean('DB_SSL', false),
   }),
 });

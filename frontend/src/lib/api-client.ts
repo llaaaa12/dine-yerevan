@@ -2,22 +2,36 @@
 // Set VITE_API_URL at build time only if the API is served from another origin.
 const API_URL: string = import.meta.env.VITE_API_URL || '/api';
 
+type ApiErrorOptions = {
+  details?: unknown;
+  // The backend's machine-readable reason, e.g. 'TABLE_TAKEN'
+  code?: string;
+};
+
 export class ApiError extends Error {
   readonly status: number;
   readonly details?: unknown;
+  readonly code?: string;
 
-  constructor(status: number, message: string, details?: unknown) {
+  constructor(
+    status: number,
+    message: string,
+    { details, code }: ApiErrorOptions = {},
+  ) {
     super(message);
     this.name = 'ApiError';
     this.status = status;
     this.details = details;
+    this.code = code;
   }
 }
 
 type RequestOptions = Omit<RequestInit, 'body'> & { body?: unknown };
 
-// The backend's error shape: { error: { message, details? } }
-type ErrorBody = { error?: { message?: string; details?: unknown } };
+// The backend's error shape: { error: { message, code?, details? } }
+type ErrorBody = {
+  error?: { message?: string; code?: string; details?: unknown };
+};
 
 async function request<T>(
   path: string,
@@ -28,7 +42,9 @@ async function request<T>(
     headers.set('Content-Type', 'application/json');
   }
 
-  const response = await fetch(`${API_URL}${path}`, {
+  // Absolute URL: browsers accept a relative one, but Node's fetch (used in tests) doesn't
+  const url = new URL(`${API_URL}${path}`, window.location.origin);
+  const response = await fetch(url, {
     ...init,
     headers,
     body: body === undefined ? undefined : JSON.stringify(body),
@@ -37,11 +53,10 @@ async function request<T>(
 
   if (!response.ok) {
     const error = (data as ErrorBody | null)?.error;
-    throw new ApiError(
-      response.status,
-      error?.message ?? response.statusText,
-      error?.details,
-    );
+    throw new ApiError(response.status, error?.message ?? response.statusText, {
+      details: error?.details,
+      code: error?.code,
+    });
   }
   return data as T;
 }

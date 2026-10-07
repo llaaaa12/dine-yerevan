@@ -13,10 +13,8 @@ export const dataSource = new DataSource({
   password: env.db.password,
   database: env.db.name,
   ssl: env.db.ssl,
-  // Any src/modules/<feature>/<name>.entity.ts is picked up automatically
-  entities: [
-    join(import.meta.dirname, '..', 'modules', '**', '*.entity.{ts,js}'),
-  ],
+  // Every src/entities/<name>.entity.ts is picked up automatically
+  entities: [join(import.meta.dirname, '..', 'entities', '*.entity.{ts,js}')],
   migrations: [join(import.meta.dirname, 'migrations', '*.{ts,js}')],
   // Schema changes only ever happen through migrations
   synchronize: false,
